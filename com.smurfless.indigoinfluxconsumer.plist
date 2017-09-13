@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.smurfless.indigoinfluxconsumer</string>
+	<key>ProgramArguments</key>
+	<array>
+		<string>/Users/dbrown/src/python/indigo/indigo-influx-receiver/indigoenv/bin/python</string>
+        <string>/Users/dbrown/src/python/indigo/indigo-influx-receiver/send_to_influx.py</string>
+	</array>
+	<key>RunAtLoad</key>
+	<true/>
+	<key>WorkingDirectory</key>
+	<string>/Users/dbrown/src/python/indigo/indigo-influx-receiver</string>
+    <key>StandardErrorPath</key>
+    <string>/tmp/mycommand.err</string>
+    <key>StandardOutPath</key>
+    <string>/tmp/mycommand.out</string>
+</dict>
+</plist>
