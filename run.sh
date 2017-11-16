@@ -1,10 +1,15 @@
 #!/bin/bash
 
-# we need pip
-which pip || sudo easy_install pip
-which virtualenv || sudo pip install virtualenv
+# =====
+# automatically switch to the directory where the script lives
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+pushd $DIR
+# =====
 
-if [ ! -e indigoenv ] ; then 
+if [ ! -e indigoenv ] ; then
+    # we need pip
+    which pip || sudo easy_install pip
+    which virtualenv || sudo pip install virtualenv
     virtualenv -p /usr/bin/python indigoenv
     source indigoenv/bin/activate
     pip install influxdb
@@ -19,4 +24,9 @@ function undo_source_actions() {
 }
 
 undo_source_actions
+
+# =====
+# return to the users calling dir
+popd
+# =====
 
