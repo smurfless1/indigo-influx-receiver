@@ -65,7 +65,7 @@ class InfluxReceiver:
             }
         ]
 
-        #print(json.dumps(json_body).encode('utf-8'))
+        print(json.dumps(json_body).encode('utf-8'))
 
         # don't like my types? ok, fine, what DO you want?
         retrylimit = 30
