@@ -23,9 +23,6 @@ OPTIONS = {
         'CFBundleVersion': "0.1.0",
         'CFBundleShortVersionString': "0.1.0",
         'NSHumanReadableCopyright': u"Copyright 2018, Dave Brown, All Rights Reserved"
-        'LSEnvironment': {
-            'INHOST=nfs.smurfless.com'
-        }
     }
 }
 
