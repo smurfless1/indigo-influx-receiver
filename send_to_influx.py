@@ -7,14 +7,14 @@ from influxdb import InfluxDBClient
 from influxdb.exceptions import InfluxDBClientError
 
 MCAST_GRP = '224.1.1.1'
-MCAST_PORT = 8087
-# todo configurable port
+# This part is the number you put in the json broadcaster UI
+MCAST_PORT = 8086
 
 class InfluxReceiver:
     def __init__(self):
-        # todo config block
+        # Influx connection half
         self.host = '127.0.0.1'
-        self.port = '8085'
+        self.port = '8086'
         self.user = 'indigo'
         self.password = 'indigo'
         self.database = 'indigo'
@@ -23,7 +23,7 @@ class InfluxReceiver:
         self.connection = None
 
     def connect(self):
-        print(u'Starting socket')
+        print(u'Starting socket on port' + str(self.port))
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -32,6 +32,7 @@ class InfluxReceiver:
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
         print(u'Starting influx connection')
+        print(self.host)
 
         self.connection = InfluxDBClient(
             host=self.host,
@@ -65,7 +66,7 @@ class InfluxReceiver:
             }
         ]
 
-        print(json.dumps(json_body).encode('utf-8'))
+        # print(json.dumps(json_body).encode('utf-8'))
 
         # don't like my types? ok, fine, what DO you want?
         retrylimit = 30
@@ -75,6 +76,8 @@ class InfluxReceiver:
             try:
                 self.connection.write_points(json_body)
                 unsent = False
+                # print("Sent:")
+                # print(json_body)
             except InfluxDBClientError as e:
                 #print(str(e))
                 field = json.loads(e.content)['error'].split('"')[1]
@@ -91,8 +94,7 @@ class InfluxReceiver:
                     #print(newcode)
                     json_body[0]['fields'][field] = eval(newcode)
                 except ValueError:
-                    pass
-                    #print('One of the columns just will not convert to its previous type. This means the database columns are just plain wrong.')
+                    print('One of the columns just will not convert to its previous type. This means the database columns are just plain wrong.')
             except ValueError:
                 print(u'Unable to force a field to the type in Influx - a partial record was still written')
             except Exception as e:
@@ -107,11 +109,11 @@ class InfluxReceiver:
             while True:
                 data, addr = self.sock.recvfrom(10240)
                 self.send(data)
-                #if data == b'stop':
-                #    print('Client wants me to stop.')
-                #    break
-                #else:
-                #    print("From addr: '%s', msg: '%s'" % (addr[0], data))
+                if data == b'stop':
+                    print('Client wants me to stop.')
+                    break
+                else:
+                    print("From addr: '%s', msg: '%s'" % (addr[0], data))
         finally:
             # Close socket
             self.sock.close()
@@ -119,9 +121,9 @@ class InfluxReceiver:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-m', '--multicastport', help='muticast port', default='8087')
+    parser.add_argument('-m', '--multicastport', help='muticast port', default=MCAST_PORT)
     parser.add_argument('-s', '--server', help='influxdb host', default='127.0.0.1')
-    parser.add_argument('-p', '--port', help='influxdb port', default='8085')
+    parser.add_argument('-p', '--port', help='influxdb port', default='8086')
     parser.add_argument('-U', '--user', help='influxdb user', default='indigo')
     parser.add_argument('-P', '--password', help='influxdb password', default='indigo')
     parser.add_argument('-d', '--database', help='influxdb database', default='indigo')
