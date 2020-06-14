@@ -1,29 +1,31 @@
-import argparse
 import socket
 import struct
 import click
 import json
-from influxdb import InfluxDBClient
-from influxdb.exceptions import InfluxDBClientError
+from influxdb_client import InfluxDBClient
+from influxdb_client.client.write_api import SYNCHRONOUS, WriteApi
+from indigo import InfluxEvent
+
+from influx_connection_state import Influx20ConnectionState
 
 MCAST_GRP = '224.1.1.1'
 # This part is the number you put in the json broadcaster UI
-MCAST_PORT = 8086
+MCAST_PORT = 8087
+
 
 class InfluxReceiver:
-    def __init__(self):
+    def __init__(self, token: str, org: str, bucket: str, host: str, print_set: bool = False, multicastport: int = MCAST_PORT):
         # Influx connection half
-        self.host = '127.0.0.1'
-        self.port = '8086'
-        self.user = 'indigo'
-        self.password = 'indigo'
-        self.database = 'indigo'
-        self.mcastport = str(MCAST_PORT)
+        client = InfluxDBClient(url=host, token=token)
+        write_api: WriteApi = client.write_api(write_options=SYNCHRONOUS)
+        self.state = Influx20ConnectionState(api=write_api, token=token, org=org, bucket=bucket, host=host)
+        self.mcastport = multicastport
         self.sock = None
         self.connection = None
+        self.pretend = print_set
 
     def connect(self):
-        print(u'Starting socket on port' + str(self.port))
+        print(u'Starting listening socket on port' + str(self.mcastport))
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -31,67 +33,25 @@ class InfluxReceiver:
         mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
-        print(u'Starting influx connection')
-        print(self.host)
+    def send(self, strwhat):
+        oldjson = json.loads(strwhat)[0]
+        for elt in oldjson:
+            for key in elt["fields"].keys():
+                key: str
+                newkey = key.replace(".", "_")
+                if key != newkey:
+                    elt["fields"][newkey] = elt["fields"][key]
+                    del elt["fields"][key]
+            ie = InfluxEvent().from_dict(elt)
+            newjson = ie.to_dict()
 
-        self.connection = InfluxDBClient(
-            host=self.host,
-            port=int(self.port),
-            username=self.user,
-            password=self.password,
-            database=self.database)
+            if len(newjson["fields"].keys()) < 1:
+                continue
 
-        print(u'Connecting...')
-        self.connection.create_database(self.database)
-        self.connection.switch_database(self.database)
-        self.connection.create_retention_policy('two_year_policy', '730d', '1')
-        print(u'Influx connection succeeded')
-
-    def send(self, strwhat, measurement='device_changes'):
-        what = json.loads(strwhat)[0]
-
-        json_body = [
-            {
-                'measurement': what['measurement'],
-                'tags': what['tags'],
-                'fields': what['fields']
-            }
-        ]
-
-        # print(json.dumps(json_body).encode('utf-8'))
-
-        # don't like my types? ok, fine, what DO you want?
-        retrylimit = 30
-        unsent = True
-        while unsent and retrylimit > 0:
-            retrylimit -= 1
-            try:
-                self.connection.write_points(json_body)
-                unsent = False
-            except InfluxDBClientError as e:
-                #print(str(e))
-                field = json.loads(e.content)['error'].split('"')[1]
-                #measurement = json.loads(e.content)['error'].split('"')[3]
-                retry = json.loads(e.content)['error'].split('"')[4].split()[7]
-                if retry == 'integer':
-                    retry = 'int'
-                if retry == 'string':
-                    retry = 'str'
-                # float is already float
-                # now we know to try to force this field to this type forever more
-                try:
-                    newcode = '%s("%s")' % (retry, str(json_body[0]['fields'][field]))
-                    #print(newcode)
-                    json_body[0]['fields'][field] = eval(newcode)
-                except ValueError:
-                    print('One of the columns just will not convert to its previous type. This means the database columns are just plain wrong.')
-            except ValueError:
-                print(u'Unable to force a field to the type in Influx - a partial record was still written')
-            except Exception as e:
-                print("Error while trying to write:")
-                print(e)
-        if retrylimit == 0 and unsent:
-            print(u'Unable to force all fields to the types in Influx - a partial record was still written')
+            if self.pretend:
+                print(newjson)
+            else:
+                self.state.api.write(self.state.bucket, self.state.org, [newjson], time_precision="s")
 
     def run(self):
         try:
@@ -111,20 +71,14 @@ class InfluxReceiver:
 
 
 @click.command()
-@click.option("--influxdb-host", type=str, default="localhost", show_default=True, env="INHOST", help="The influxdb host to connect to.")
-@click.option("--influxdb-port", type=int, default=8086, show_default=True, env="INPORT", help="The influxdb port to connect to.")
-@click.option("--influxdb-user", type=int, default="indigo", show_default=True, env="INUSER", help="The influxdb user to connect as.")
-@click.option("--influxdb-pass", type=str, default="indigo", show_default=True, env="INPASS", help="The influxdb password.")
-@click.option("--influxdb-database", type=str, default="indigo", show_default=True, env="INDB", help="The influxdb database.")
+@click.option("--token", type=str, envvar="INFLUX_TOKEN", required=True)
+@click.option("--org", type=str, envvar="INFLUX_ORG", required=True)
+@click.option("--bucket", type=str, envvar="INFLUX_BUCKET", required=True)
+@click.option("--host", type=str, envvar="INFLUX_HOST", required=True)
+@click.option("--print", "print_set", is_flag=True, help="Just print, don't send.")
 @click.option("--multicastport", "-m", type=int, default=8087, show_default=True, env="MCPORT", help="The multicast port.")
-def main(influxdb_host, influxdb_port, influxdb_user, influxdb_pass, influxdb_database, multicastport):
-    ir = InfluxReceiver()
-    ir.host = influxdb_host
-    ir.port = influxdb_port
-    ir.user = influxdb_user
-    ir.password = influxdb_pass
-    ir.database = influxdb_database
-    ir.mcastport = multicastport
+def main(**kwargs):
+    ir = InfluxReceiver(**kwargs)
 
     ir.connect()
     ir.run()
