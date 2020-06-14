@@ -34,24 +34,23 @@ class InfluxReceiver:
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
     def send(self, strwhat):
-        oldjson = json.loads(strwhat)[0]
-        for elt in oldjson:
-            for key in elt["fields"].keys():
-                key: str
-                newkey = key.replace(".", "_")
-                if key != newkey:
-                    elt["fields"][newkey] = elt["fields"][key]
-                    del elt["fields"][key]
-            ie = InfluxEvent().from_dict(elt)
-            newjson = ie.to_dict()
+        oldjson = json.loads(strwhat.decode('utf-8'))[0]
+        for key in oldjson["fields"].keys():
+            key: str
+            newkey = key.replace(".", "_")
+            if key != newkey:
+                oldjson["fields"][newkey] = oldjson["fields"][key]
+                del oldjson["fields"][key]
+        ie = InfluxEvent().from_dict(oldjson)
+        newjson = ie.to_dict()
 
-            if len(newjson["fields"].keys()) < 1:
-                continue
+        if len(newjson["fields"].keys()) < 1:
+            return
 
-            if self.pretend:
-                print(newjson)
-            else:
-                self.state.api.write(self.state.bucket, self.state.org, [newjson], time_precision="s")
+        if self.pretend:
+            print(newjson)
+        else:
+            self.state.api.write(self.state.bucket, self.state.org, [newjson], time_precision="s")
 
     def run(self):
         try:
@@ -76,7 +75,8 @@ class InfluxReceiver:
 @click.option("--bucket", type=str, envvar="INFLUX_BUCKET", required=True)
 @click.option("--host", type=str, envvar="INFLUX_HOST", required=True)
 @click.option("--print", "print_set", is_flag=True, help="Just print, don't send.")
-@click.option("--multicastport", "-m", type=int, default=8087, show_default=True, env="MCPORT", help="The multicast port.")
+@click.option("--multicastport", "-m", type=int, default=8087,
+show_default=True, envvar="MCPORT", help="The multicast port.")
 def main(**kwargs):
     ir = InfluxReceiver(**kwargs)
 
