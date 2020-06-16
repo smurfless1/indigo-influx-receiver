@@ -1,15 +1,23 @@
-from datetime import datetime
 import socket
 import struct
-from typing import Optional
-
 import click
 import json
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS, WriteApi
-from indigo import IndigoEvent, IndigoTags, IndigoFields, InfluxEvent, InfluxFields, InfluxTag
+try:
+    from .indigo import IndigoEvent, IndigoUnknownMessage, HvacFields, DimmerSwitchFields, SecurityFields, GenericFields, BinarySwitchFields, InfluxEvent, InfluxFields, InfluxTag
+except ImportError:
+    from indigo import IndigoEvent, IndigoUnknownMessage, HvacFields, DimmerSwitchFields, SecurityFields, GenericFields, BinarySwitchFields, InfluxEvent, InfluxFields, InfluxTag
 
-from influx_connection_state import Influx20ConnectionState
+try:
+    from .influx_outbound import InfluxOutbound, make_unknown_message
+except ImportError:
+    from influx_outbound import InfluxOutbound, make_unknown_message
+
+try:
+    from .influx_connection_state import Influx20ConnectionState
+except ImportError:
+    from influx_connection_state import Influx20ConnectionState
 
 MCAST_GRP = '224.1.1.1'
 # This part is the number you put in the json broadcaster UI
@@ -18,11 +26,6 @@ MCAST_PORT = 8087
 
 def load_indigo_event(adict: dict):
     return IndigoEvent().from_dict(adict)
-
-
-def load_event_list(msg: str):
-    aslist = json.loads(msg)
-    return [load_indigo_event(x) for x in aslist]
 
 
 class InfluxReceiver:
@@ -46,47 +49,14 @@ class InfluxReceiver:
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
     def send(self, strwhat):
-        for evt in load_event_list(strwhat.decode('utf-8')):
-            evt: IndigoEvent
-
-            # because we're only using a specific subset of data, we reduce quite a bit
-            on: Optional[bool] = any([
-                evt.fields.cool_is_on,
-                evt.fields.heat_is_on,
-                evt.fields.on_state,
-                evt.fields.brightness and evt.fields.brightness > 0.0,
-            ])
-            if evt.fields.cool_is_on is None and evt.fields.heat_is_on is None and evt.fields.on_state is None and evt.fields.brightness is None:
-                on = None
-            cool: Optional[float] = evt.fields.cool_setpoint
-            heat: Optional[float] = evt.fields.heat_setpoint
-            temperature: Optional[float] = evt.fields.state_temperature_input1
-            humidity: Optional[float] = evt.fields.state_humidity_input1
-            brightness: Optional[float] = evt.fields.brightness
-
-            ie = InfluxEvent(measurement=evt.measurement,
-                             time=datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-                             tags=InfluxTag(name=evt.tags.name, folder=evt.tags.folder),
-                             fields=InfluxFields(
-                                 cool_setpoint=cool,
-                                 heat_setpoint=heat,
-                                 temperature=temperature,
-                                 humidity=humidity,
-                                 on=on,
-                                 brightness=brightness
-                             ))
-            if on is not None or ie.fields.brightness is not None:
-                if ie.fields.on and not ie.fields.brightness:
-                    ie.fields.brightness = 100.0
-                if ie.fields.on is not None and ie.fields.on is False and not ie.fields.brightness:
-                    ie.fields.brightness = 0.0
-
-            newjson = ie.to_dict()
-            if len(newjson["fields"].keys()) < 1:
-                return
-            print(ie.to_json())
-
-            if not self.pretend:
+        for evt in json.loads(strwhat.decode('utf-8')):
+            msg = make_unknown_message(evt)
+            out = InfluxOutbound(msg)
+            if out.sendable():
+                newjson = out.json
+                print(newjson)
+                if self.pretend:
+                    continue
                 self.state.api.write(self.state.bucket, self.state.org, [newjson], time_precision="s")
 
     def run(self):
