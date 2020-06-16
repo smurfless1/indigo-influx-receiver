@@ -82,9 +82,9 @@ class InfluxReceiver:
                     ie.fields.brightness = 0.0
 
             newjson = ie.to_dict()
-            print(ie.to_json())
             if len(newjson["fields"].keys()) < 1:
                 return
+            print(ie.to_json())
 
             if not self.pretend:
                 self.state.api.write(self.state.bucket, self.state.org, [newjson], time_precision="s")
