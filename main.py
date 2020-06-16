@@ -56,6 +56,8 @@ class InfluxReceiver:
                 evt.fields.on_state,
                 evt.fields.brightness and evt.fields.brightness > 0.0,
             ])
+            if evt.fields.cool_is_on is None and evt.fields.heat_is_on is None and evt.fields.on_state is None and evt.fields.brightness is None:
+                on = None
             cool: Optional[float] = evt.fields.cool_setpoint
             heat: Optional[float] = evt.fields.heat_setpoint
             temperature: Optional[float] = evt.fields.state_temperature_input1
@@ -73,11 +75,11 @@ class InfluxReceiver:
                                  on=on,
                                  brightness=brightness
                              ))
-
-            if ie.fields.on and not ie.fields.brightness:
-                ie.fields.brightness = 100.0
-            if ie.fields.on is not None and ie.fields.on is False and not ie.fields.brightness:
-                ie.fields.brightness = 0.0
+            if on is not None or ie.fields.brightness is not None:
+                if ie.fields.on and not ie.fields.brightness:
+                    ie.fields.brightness = 100.0
+                if ie.fields.on is not None and ie.fields.on is False and not ie.fields.brightness:
+                    ie.fields.brightness = 0.0
 
             newjson = ie.to_dict()
             print(ie.to_json())
