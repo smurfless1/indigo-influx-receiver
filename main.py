@@ -1,3 +1,4 @@
+from datetime import datetime
 import socket
 import struct
 import click
@@ -41,15 +42,26 @@ class InfluxReceiver:
             if key != newkey:
                 oldjson["fields"][newkey] = oldjson["fields"][key]
                 del oldjson["fields"][key]
+        if "time" not in oldjson:
+            print("Time missing:")
+            print(oldjson)
+            oldjson["time"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
+            return
         ie = InfluxEvent().from_dict(oldjson)
+        print(1)
+        if ie.fields.on and not ie.fields.brightness:
+            ie.fields.brightness = 100.0
+        print(2)
+        if ie.fields.on is not None and id.fields.on == False and not ie.fields.brightness:
+            ie.fields.brightness = 0.0
+        print(3)
         newjson = ie.to_dict()
-
+        print(ie.to_json())
+        print(4)
         if len(newjson["fields"].keys()) < 1:
             return
 
-        if self.pretend:
-            print(newjson)
-        else:
+        if not self.pretend:
             self.state.api.write(self.state.bucket, self.state.org, [newjson], time_precision="s")
 
     def run(self):
@@ -62,7 +74,8 @@ class InfluxReceiver:
                     print('Client wants me to stop.')
                     break
                 else:
-                    print("From addr: '%s', msg: '%s'" % (addr[0], data))
+                    # print("From addr: '%s', msg: '%s'" % (addr[0], data))
+                    pass
         finally:
             # Close socket
             self.sock.close()
