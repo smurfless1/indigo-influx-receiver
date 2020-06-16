@@ -4,6 +4,7 @@ from typing import Optional, List
 import arrow
 
 import betterproto
+from dateutil import tz
 
 try:
     from .indigo import IndigoUnknownMessage, HvacFields, DimmerSwitchFields, SecurityFields, GenericFields, BinarySwitchFields, InfluxEvent, InfluxFields, InfluxTag
@@ -51,7 +52,7 @@ class InfluxOutbound:
 
     @property
     def time(self) -> datetime.datetime:
-        return arrow.get(getattr(self.val, "last_successful_comm")).datetime
+        return arrow.get(getattr(self.val, "last_successful_comm")).replace(tzinfo=tz.tzlocal()).datetime
 
     @property
     def fields(self) -> dict:
