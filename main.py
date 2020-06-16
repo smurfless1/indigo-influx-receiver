@@ -50,6 +50,7 @@ class InfluxReceiver:
         if ie.fields.on is not None and ie.fields.on is False and not ie.fields.brightness:
             ie.fields.brightness = 0.0
         newjson = ie.to_dict()
+        print(ie.to_json())
         if len(newjson["fields"].keys()) < 1:
             return
 
