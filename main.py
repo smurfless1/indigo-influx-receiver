@@ -43,20 +43,13 @@ class InfluxReceiver:
                 oldjson["fields"][newkey] = oldjson["fields"][key]
                 del oldjson["fields"][key]
         if "time" not in oldjson:
-            print("Time missing:")
-            print(oldjson)
             oldjson["time"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
         ie = InfluxEvent().from_dict(oldjson)
-        print(1)
         if ie.fields.on and not ie.fields.brightness:
             ie.fields.brightness = 100.0
-        print(2)
         if ie.fields.on is not None and ie.fields.on is False and not ie.fields.brightness:
             ie.fields.brightness = 0.0
-        print(3)
         newjson = ie.to_dict()
-        print(ie.to_json())
-        print(4)
         if len(newjson["fields"].keys()) < 1:
             return
 
