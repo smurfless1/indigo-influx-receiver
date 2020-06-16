@@ -54,7 +54,7 @@ class InfluxReceiver:
                 evt.fields.cool_is_on,
                 evt.fields.heat_is_on,
                 evt.fields.on_state,
-                evt.fields.brightness > 0.0,
+                evt.fields.brightness and evt.fields.brightness > 0.0,
             ])
             cool: Optional[float] = evt.fields.cool_setpoint
             heat: Optional[float] = evt.fields.heat_setpoint
