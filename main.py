@@ -46,12 +46,11 @@ class InfluxReceiver:
             msg = make_unknown_message(evt)
             out = InfluxOutbound(msg)
             if out.sendable():
-                newjson = out.json
-                asdict = json.loads(newjson)
-                print(newjson)
+                evt = out.event
+                print(evt.to_json())
                 if self.pretend:
                     continue
-                self.state.api.write(self.state.bucket, self.state.org, [asdict], time_precision="s")
+                self.state.api.write(self.state.bucket, self.state.org, [evt.to_dict()], time_precision="s")
 
     def run(self):
         try:
