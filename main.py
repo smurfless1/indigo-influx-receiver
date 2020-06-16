@@ -46,13 +46,12 @@ class InfluxReceiver:
             print("Time missing:")
             print(oldjson)
             oldjson["time"] = datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-            return
         ie = InfluxEvent().from_dict(oldjson)
         print(1)
         if ie.fields.on and not ie.fields.brightness:
             ie.fields.brightness = 100.0
         print(2)
-        if ie.fields.on is not None and id.fields.on == False and not ie.fields.brightness:
+        if ie.fields.on is not None and ie.fields.on is False and not ie.fields.brightness:
             ie.fields.brightness = 0.0
         print(3)
         newjson = ie.to_dict()
@@ -88,8 +87,7 @@ class InfluxReceiver:
 @click.option("--bucket", type=str, envvar="INFLUX_BUCKET", required=True)
 @click.option("--host", type=str, envvar="INFLUX_HOST", required=True)
 @click.option("--print", "print_set", is_flag=True, help="Just print, don't send.")
-@click.option("--multicastport", "-m", type=int, default=8087,
-show_default=True, envvar="MCPORT", help="The multicast port.")
+@click.option("--multicastport", "-m", type=int, default=8087, show_default=True, envvar="MCPORT", help="The multicast port.")
 def main(**kwargs):
     ir = InfluxReceiver(**kwargs)
 
