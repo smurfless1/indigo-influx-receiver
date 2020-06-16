@@ -31,18 +31,85 @@ class DeviceChange(betterproto.Message):
 @dataclass
 class InfluxFields(betterproto.Message):
     on: Optional[bool] = betterproto.message_field(1, wraps=betterproto.TYPE_BOOL)
-    cool_setpoint: Optional[float] = betterproto.message_field(
-        3, wraps=betterproto.TYPE_FLOAT
-    )
-    heat_setpoint: Optional[float] = betterproto.message_field(
-        4, wraps=betterproto.TYPE_FLOAT
-    )
-    temperature: Optional[float] = betterproto.message_field(
-        5, wraps=betterproto.TYPE_FLOAT
-    )
-    humidity: Optional[float] = betterproto.message_field(
-        6, wraps=betterproto.TYPE_FLOAT
-    )
     brightness: Optional[float] = betterproto.message_field(
         11, wraps=betterproto.TYPE_FLOAT
+    )
+    cool_setpoint: Optional[float] = betterproto.message_field(
+        20, wraps=betterproto.TYPE_FLOAT
+    )
+    heat_setpoint: Optional[float] = betterproto.message_field(
+        21, wraps=betterproto.TYPE_FLOAT
+    )
+    temperature: Optional[float] = betterproto.message_field(
+        22, wraps=betterproto.TYPE_FLOAT
+    )
+    humidity: Optional[float] = betterproto.message_field(
+        23, wraps=betterproto.TYPE_FLOAT
+    )
+
+
+@dataclass
+class IndigoEvent(betterproto.Message):
+    measurement: Optional[str] = betterproto.message_field(
+        1, wraps=betterproto.TYPE_STRING
+    )
+    time: Optional[str] = betterproto.message_field(2, wraps=betterproto.TYPE_STRING)
+    tags: "IndigoTags" = betterproto.message_field(3)
+    fields: "IndigoFields" = betterproto.message_field(4)
+
+
+@dataclass
+class IndigoFields(betterproto.Message):
+    name: Optional[str] = betterproto.message_field(1, wraps=betterproto.TYPE_STRING)
+    last_changed: Optional[float] = betterproto.message_field(
+        2, wraps=betterproto.TYPE_FLOAT
+    )
+    last_successful_comm: Optional[float] = betterproto.message_field(
+        3, wraps=betterproto.TYPE_FLOAT
+    )
+    id: Optional[float] = betterproto.message_field(4, wraps=betterproto.TYPE_FLOAT)
+    brightness: Optional[float] = betterproto.message_field(
+        10, wraps=betterproto.TYPE_FLOAT
+    )
+    on_state: Optional[bool] = betterproto.message_field(
+        11, wraps=betterproto.TYPE_BOOL
+    )
+    state_on_off_state: Optional[bool] = betterproto.message_field(
+        12, wraps=betterproto.TYPE_BOOL
+    )
+    on_state_num: Optional[float] = betterproto.message_field(
+        13, wraps=betterproto.TYPE_FLOAT
+    )
+    state_humidity_input1: Optional[float] = betterproto.message_field(
+        21, wraps=betterproto.TYPE_FLOAT
+    )
+    cool_setpoint: Optional[float] = betterproto.message_field(
+        22, wraps=betterproto.TYPE_FLOAT
+    )
+    cool_is_on: Optional[bool] = betterproto.message_field(
+        23, wraps=betterproto.TYPE_BOOL
+    )
+    cool_is_on_num: Optional[float] = betterproto.message_field(
+        24, wraps=betterproto.TYPE_FLOAT
+    )
+    heat_setpoint: Optional[float] = betterproto.message_field(
+        25, wraps=betterproto.TYPE_FLOAT
+    )
+    heat_is_on: Optional[bool] = betterproto.message_field(
+        26, wraps=betterproto.TYPE_BOOL
+    )
+    heat_is_on_num: Optional[float] = betterproto.message_field(
+        27, wraps=betterproto.TYPE_FLOAT
+    )
+    state_temperature_input1: Optional[float] = betterproto.message_field(
+        29, wraps=betterproto.TYPE_FLOAT
+    )
+
+
+@dataclass
+class IndigoTags(betterproto.Message):
+    name: Optional[str] = betterproto.message_field(1, wraps=betterproto.TYPE_STRING)
+    folder: Optional[str] = betterproto.message_field(2, wraps=betterproto.TYPE_STRING)
+    folder_id: Optional[str] = betterproto.message_field(
+        3, wraps=betterproto.TYPE_STRING
     )

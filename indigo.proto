@@ -27,3 +27,36 @@ message InfluxFields {
     google.protobuf.FloatValue humidity = 23;
 }
 
+message IndigoEvent {
+    google.protobuf.StringValue measurement = 1;
+    google.protobuf.StringValue time = 2;
+    IndigoTags tags = 3;
+    IndigoFields fields = 4;
+}
+
+message IndigoFields {
+    google.protobuf.StringValue name = 1;
+    google.protobuf.FloatValue lastChanged = 2;
+    google.protobuf.FloatValue lastSuccessfulComm = 3;
+    google.protobuf.FloatValue id = 4;
+
+    google.protobuf.FloatValue brightness = 10;
+    google.protobuf.BoolValue onState = 11;
+    google.protobuf.BoolValue state_onOffState = 12;
+    google.protobuf.FloatValue onState_num = 13;
+
+    google.protobuf.FloatValue state_humidityInput1 = 21;
+    google.protobuf.FloatValue coolSetpoint = 22;
+    google.protobuf.BoolValue coolIsOn = 23;
+    google.protobuf.FloatValue coolIsOn_num = 24;
+    google.protobuf.FloatValue heatSetpoint = 25;
+    google.protobuf.BoolValue heatIsOn = 26;
+    google.protobuf.FloatValue heatIsOn_num = 27;
+    google.protobuf.FloatValue state_temperatureInput1 = 29;
+}
+
+message IndigoTags {
+    google.protobuf.StringValue name = 1;
+    google.protobuf.StringValue folder = 2;
+    google.protobuf.StringValue folderId = 3;
+}
