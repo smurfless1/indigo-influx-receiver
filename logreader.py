@@ -1,15 +1,7 @@
 from pathlib import Path
 import json
 
-try:
-    from .indigo import IndigoUnknownMessage, HvacFields, DimmerSwitchFields, SecurityFields, GenericFields, BinarySwitchFields, InfluxEvent, InfluxFields, InfluxTag
-except ImportError:
-    from indigo import IndigoUnknownMessage, HvacFields, DimmerSwitchFields, SecurityFields, GenericFields, BinarySwitchFields, InfluxEvent, InfluxFields, InfluxTag
-
-try:
-    from .influx_outbound import InfluxOutbound, make_unknown_message
-except ImportError:
-    from influx_outbound import InfluxOutbound, make_unknown_message
+from indigo_protobuf.indigo_influx_outbound import InfluxOutbound, make_unknown_message
 
 
 with Path("~/Resilio Sync/Sync/newelog.json").expanduser().open("r", encoding='utf-8') as logfile:

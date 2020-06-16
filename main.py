@@ -4,15 +4,8 @@ import click
 import json
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS, WriteApi
-try:
-    from .indigo import IndigoEvent, IndigoUnknownMessage, HvacFields, DimmerSwitchFields, SecurityFields, GenericFields, BinarySwitchFields, InfluxEvent, InfluxFields, InfluxTag
-except ImportError:
-    from indigo import IndigoEvent, IndigoUnknownMessage, HvacFields, DimmerSwitchFields, SecurityFields, GenericFields, BinarySwitchFields, InfluxEvent, InfluxFields, InfluxTag
-
-try:
-    from .influx_outbound import InfluxOutbound, make_unknown_message
-except ImportError:
-    from influx_outbound import InfluxOutbound, make_unknown_message
+from indigo_protobuf.indigo import IndigoEvent
+from indigo_protobuf.indigo_influx_outbound import InfluxOutbound, make_unknown_message
 
 try:
     from .influx_connection_state import Influx20ConnectionState

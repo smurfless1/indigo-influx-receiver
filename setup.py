@@ -13,13 +13,14 @@ setup(
     include_package_data=True,
     python_requires='>=3.7',
     install_requires=[
+        'click',
         'influxdb',
+        'indigo-protobuf'
     ],
     extras_require={
         'dev': [
             'behave',
             'flake8',
-            'invoke',
             'tox',
             'mypy',
             'pytest'
