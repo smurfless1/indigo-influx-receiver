@@ -28,6 +28,6 @@ setup(
     },
     entry_points='''
         [console_scripts]
-        indigo-influx-receiver=main.py
+        indigo-influx-receiver=main:main
     ''',
 )
