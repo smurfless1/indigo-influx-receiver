@@ -8,7 +8,7 @@ import json
 
 from indigo_protobuf.indigo_pb2 import IndigoUnknownMessage
 from indigo_protobuf.indigo_pb2_grpc import TranslatorServicer
-from indigo_protobuf_betterproto.indigo_influx_outbound import make_unknown_message
+from indigo_protobuf.indigo_influx_outbound import make_unknown_message, InfluxOutbound
 
 MCAST_GRP = '224.1.1.1'
 # This part is the number you put in the json broadcaster UI
@@ -17,9 +17,10 @@ SERVER_IP_BINDING = "0.0.0.0"
 SERVER_PORT = "60000"
 
 
-def get_messages_from_msg(strwhat) -> List[IndigoUnknownMessage]:
+def get_messages_from_msg(strwhat) -> List[InfluxOutbound]:
     messages = [make_unknown_message(evt) for evt in json.loads(strwhat.decode('utf-8'))]
-    return [elt for elt in messages if elt.sendable()]
+    outbound = [InfluxOutbound(msg) for msg in messages]
+    return [elt for elt in outbound if elt.sendable()]
 
 
 class InfluxReceiver(TranslatorServicer):
