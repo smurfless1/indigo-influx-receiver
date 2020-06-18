@@ -4,8 +4,8 @@ import click
 import json
 from influxdb_client import InfluxDBClient
 from influxdb_client.client.write_api import SYNCHRONOUS, WriteApi
-from indigo_protobuf.indigo import IndigoEvent
-from indigo_protobuf.indigo_influx_outbound import InfluxOutbound, make_unknown_message
+from indigo_protobuf_betterproto.indigo import IndigoEvent
+from indigo_protobuf_betterproto.indigo_influx_outbound import InfluxOutbound, make_unknown_message
 
 try:
     from .influx_connection_state import Influx20ConnectionState
@@ -37,7 +37,7 @@ class InfluxReceiver:
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
-        self.sock.bind(('0.0.0.0', int(self.mcastport)))
+        self.sock.bind(('', int(self.mcastport)))
         mreq = struct.pack("4sl", socket.inet_aton(MCAST_GRP), socket.INADDR_ANY)
         self.sock.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, mreq)
 
