@@ -6,9 +6,8 @@ from typing import List
 
 import json
 
-from indigo_protobuf.indigo_pb2 import IndigoUnknownMessage
-from indigo_protobuf.indigo_pb2_grpc import TranslatorServicer
-from indigo_protobuf.indigo_influx_outbound import make_unknown_message, InfluxOutbound
+from indigo_protobuf_betterproto.indigo import IndigoUnknownMessage, TranslatorStub
+from indigo_protobuf_betterproto.indigo_influx_outbound import make_unknown_message, InfluxOutbound
 
 MCAST_GRP = '224.1.1.1'
 # This part is the number you put in the json broadcaster UI
@@ -22,7 +21,7 @@ def get_messages_from_msg(strwhat) -> List[IndigoUnknownMessage]:
     return messages
 
 
-class InfluxReceiver(TranslatorServicer):
+class InfluxReceiver(TranslatorStub):
     """Just take messages off local multicast, cast them, and forward them on."""
 
     def Subscribe(self, request, context):  # -> InfluxUnknownMessage
