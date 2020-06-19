@@ -17,10 +17,10 @@ SERVER_IP_BINDING = "0.0.0.0"
 SERVER_PORT = "60000"
 
 
-def get_messages_from_msg(strwhat) -> List[InfluxOutbound]:
+def get_messages_from_msg(strwhat) -> List[IndigoUnknownMessage]:
     messages = [make_unknown_message(evt) for evt in json.loads(strwhat.decode('utf-8'))]
-    outbound = [InfluxOutbound(msg) for msg in messages]
-    return [elt for elt in outbound if elt.sendable()]
+    outbound = [msg.event for msg in map(InfluxOutbound, messages) if msg.sendable()]
+    return outbound
 
 
 class InfluxReceiver(TranslatorServicer):
