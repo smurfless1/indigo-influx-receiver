@@ -25,7 +25,17 @@ def get_messages_from_msg(strwhat) -> List[IndigoUnknownMessage]:
 
 
 def get_influx_events(source_list: List[IndigoUnknownMessage]) -> List[InfluxEvent]:
-    return [elt.event for elt in map(InfluxOutbound, source_list) if elt.sendable()]
+    return_list = []
+    for elt in map(InfluxOutbound, source_list):
+        print(f"{elt.message.tags.name.value}")
+        if elt.sendable():
+            print("sendable")
+            togo = elt.event
+            print(togo)
+            return_list.append(togo)
+    print("returning")
+    return return_list
+    # return [elt.event for elt in map(InfluxOutbound, source_list) if elt.sendable()]
 
 
 class IndigoReceiver(TranslatorServicer):
