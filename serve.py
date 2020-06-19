@@ -18,6 +18,7 @@ SERVER_PORT = "60000"
 
 
 def get_messages_from_msg(strwhat) -> List[IndigoUnknownMessage]:
+    print(strwhat)
     messages = [make_unknown_message(evt) for evt in json.loads(strwhat.decode('utf-8'))]
     outbound = [msg.event for msg in map(InfluxOutbound, messages) if msg.sendable()]
     return outbound
