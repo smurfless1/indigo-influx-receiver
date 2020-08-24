@@ -29,6 +29,7 @@ def get_influx_events(source_list: List[IndigoUnknownMessage]) -> List[InfluxEve
     for elt in map(InfluxOutbound, source_list):
         print(f"{elt.message.tags.name.value}")
         if elt.sendable():
+            print(elt)
             print("sendable")
             togo = elt.event
             print(togo)
@@ -42,6 +43,7 @@ class IndigoReceiver(TranslatorServicer):
     """Just take messages off local multicast, cast them, and forward them on."""
 
     def Subscribe(self, request, context):  # -> InfluxUnknownMessage
+        print("Got a connection!")
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
@@ -106,9 +108,9 @@ def serve():
     server_address = f'{SERVER_IP_BINDING}:{SERVER_PORT}'
     print(f"My server address {server_address}")
 
-    server = grpc.server(ThreadPoolExecutor(max_workers=1))
+    server = grpc.server(ThreadPoolExecutor(max_workers=8))
     indigo_pb2_grpc.add_TranslatorServicer_to_server(IndigoReceiver(), server)
-    indigo_influx_pb2_grpc.add_InfluxTranslatorServicer_to_server(InfluxReceiver(), server)
+    # indigo_influx_pb2_grpc.add_InfluxTranslatorServicer_to_server(InfluxReceiver(), server)
 
     server.add_insecure_port(server_address)
     server.start()
