@@ -1,3 +1,4 @@
+arrow
+betterproto
 click
 influxdb-client
-indigo-protobuf

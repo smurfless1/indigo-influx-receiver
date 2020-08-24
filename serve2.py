@@ -56,7 +56,7 @@ from indigo_protobuf import indigo_pb2_grpc
 
 
 def serve():
-    server = grpc.server(ThreadPoolExecutor(max_workers=1))
+    server = grpc.server(ThreadPoolExecutor(max_workers=3))
     indigo_pb2_grpc.add_TranslatorServicer_to_server(InfluxReceiver(), server)
 
     server_address = f'{SERVER_IP_BINDING}:{SERVER_PORT}'

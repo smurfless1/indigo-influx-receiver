@@ -13,13 +13,15 @@ setup(
     include_package_data=True,
     python_requires='>=3.7',
     install_requires=[
+        'arrow',
+        'betterproto',
         'click',
         'influxdb',
-        'indigo-protobuf'
     ],
     extras_require={
         'dev': [
             'behave',
+            'betterproto[compiler]',
             'flake8',
             'tox',
             'mypy',
@@ -28,6 +30,6 @@ setup(
     },
     entry_points='''
         [console_scripts]
-        indigo-influx-receiver=main:main
+        indigo-influx-receiver=serve:main
     ''',
 )
